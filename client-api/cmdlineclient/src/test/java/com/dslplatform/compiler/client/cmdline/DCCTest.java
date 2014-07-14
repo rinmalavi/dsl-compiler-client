@@ -19,16 +19,14 @@ abstract public class DCCTest {
     protected TestingOutput output = new TestingOutput();
     protected Api api = makeApi();
     protected CommandLinePrompt clcp = makeClcp();
-    protected CLCAction action = makeAction();
+    protected ArgumentProcessor action = makeAction();
 
     protected abstract Arguments makeArguments();
 
     protected CommandLinePrompt makeClcp() {
         return  new MockCommandLinePrompt(true, true, true, true, true, true, true, true, true, true);
     }
-
-    public CLCAction makeAction() {
-        return new ActionDefinition(api, logger, output, arguments, clcp);
+mogger, output, arguments, clcp);
     }
 
     public Api makeApi() {
@@ -41,7 +39,7 @@ abstract public class DCCTest {
 
     @Before
     public void setUp() throws IOException {
-        Main.process(action);
+        action.process();
     }
 
     @AfterClass

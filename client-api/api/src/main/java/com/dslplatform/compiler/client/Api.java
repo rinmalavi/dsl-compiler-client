@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 
 import javax.sql.DataSource;
 import java.io.File;
+import java.io.IOError;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +25,7 @@ public interface Api {
      * Verifies the syntax for the provided DSL
      */
     public ParseDSLResponse parseDSL(
-            final String token, final Map<String, String> dsl);
+            final String token, final Map<String, String> dsl) throws IOException;
 
     /**
      * Creates a test project with a given name
@@ -383,7 +385,7 @@ public interface Api {
      * @param dbConnectionString
      * @return
      */
-    public boolean mingleDatabaseConnectionString(final MonoApplicationPath monoApplicationPath, final DBConnectionString dbConnectionString, final CompilationTargetPath compilationTargetPath);
+    public boolean mingleRevenjConfig(final MonoApplicationPath monoApplicationPath, final DBConnectionString dbConnectionString, final CompilationTargetPath compilationTargetPath);
 
     /**
      * Copies all files needed for a runnable mono instance.

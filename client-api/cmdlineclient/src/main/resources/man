@@ -1,0 +1,30 @@
+usage: java -jar dsl-clc.jar [options] [--]
+
+    --project-properties-path       path to the project properties file. This file can contain all of the bellow, additional defining of any of these options in command line will override the setting from the properties file.
+    -u, --username                  username with which you have registered at dsl-platform.com
+    -p, --password                  password with which you have registered at dsl-platform.com
+
+    -i, --project-id                projectID of a managed project if this is the one
+    -n, --package-name              package name, or namespace of target client sources
+    -t, --target                    target language for sources (server and client)
+    -o, --output-path               path to where the sources should be written
+    -l, --logging-level             level of the logging
+    --dsl-path                      path to the dsl files which describe a model
+    --project-name                  name of the project
+    --actions                       actions you want to have performed
+    --db-username, --db-password, --db-host, --db-port, --db-database-name credentials for access to the database
+    --db-connection-string          connection string which can be used to access the database, either this or all individual connection parameters should be set
+    --migration-file                path to the file which will hold generated sql migration
+    --revenj-path                   path to the revenj dependencies, if they are not present user will be asked should one be downloaded and they will be saved to this location/version
+    --revenj-version                desired revenj version.
+    --compilation-target            path to the file which should hold compilation product
+    --mono-path                     path to where mono service should be deployed, this value can be left out, compiler client will just skip this step. If it is set, to this location client will write start script (start.sh) which mono will use to start your application, folders cache, logs and bin will also be created, folder bin will hold all dependencies, configuration file and exe which will be started with the start script.
+    --cache-path
+    --active-record                 code generation option, which tells compiler should CRUD helper functions be added to the source
+    --with-java-beans
+    --with-jackson
+    --with-helper-methods
+    --skip-diff                     if this option is selected then user will not bi prompted to confirm the changes, set to false by default
+    --allow-unsafe                  if selected compiler will perform the migration even if its unsafe, usually it would prompt a user with a description of a migration, set to false by defualt
+    --managed                       set this key to true if you wish to perform actions on local mono service or scala server library, by default this is set to true.
+

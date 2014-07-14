@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * Class that proxies responses to from the Api to the output and provides a user experience in a sense of validating chosen actions.
  */
-public class ActionDefinition extends ActionContext {
+public class ActionDefinition extends ActionContext implements ArgumentProcessor {
 
     private final static String successfulManagedUpgrade = "Successful update!";
     private final static String source_compilation_failed_msg = "Source compilation failed ";
@@ -46,7 +46,7 @@ public class ActionDefinition extends ActionContext {
     private final static String database_upgrade_successful_msg = "Database upgrade successful";
     private final static String upgrading_with_requested_migration_msg = "Upgrading with remotely requested migration";
     private final static String database_upgrade_empty_msg = "Migration SQL will make no changes!";
-    private final static String missing_mono_location_msg = "Mono Location was not provided!";
+    private final static String missing_mono_location_msg = "Will not copy to mono service location since it was not provided!";
 
     private final static String correct_DSL_and_try_again_prompt = "Correct DSL and try again";
     private final static String generate_sources_if_DB_failed_continue_prompt = "download sources even thou database upgrade failed.";
@@ -82,11 +82,51 @@ public class ActionDefinition extends ActionContext {
         super(api, logger, output, arguments, clp);
     }
 
-    public boolean parseDSL() {
+    public void process() throws IOException {
+        for (Action action : arguments.getActions().getActionSet()) {
+            switch (action) {
+                case UPDATE:
+                    upgrade();
+                    break;
+                case GET_CHANGES:
+                    getChanges();
+                    break;
+                case LAST_DSL:
+                    lastDSL();
+                    break;
+                case CONFIG:
+                /* todo - managed action */
+                    break;
+                case PARSE:
+                    parseDSL();
+                    break;
+                case GENERATE_SOURCES:
+                    generateSources();
+                    break;
+                case UNMANAGED_CS_SERVER:
+                    deployUnmanagedServer();
+                    break;
+                case UNMANAGED_SOURCE:
+                    unmanagedSource();
+                    break;
+                case UPGRADE_UNMANAGED_DATABASE:
+                    upgradeUnmanagedDatabase();
+                    break;
+                case UNMANAGED_SQL_MIGRATION:
+                    upgradeUnmanagedDatabase();
+                    break;
+                case DEPLOY_UNMANAGED_SERVER:
+                    deployUnmanagedServer();
+                    break;
+            }
+        }
+    }
+
+    public boolean parseDSL() throws IOException {
         return parseDSL(getDSL());
     }
 
-    private boolean parseDSL(final DSL dsl) {
+    private boolean parseDSL(final DSL dsl) throws IOException {
         logger.trace("About to parse DSL");
         final ParseDSLResponse parseDSLResponse = api.parseDSL(getToken(), dsl.files);
         if (parseDSLResponse.authorized) output.println(parseDSLResponse.parseMessage);
@@ -109,7 +149,7 @@ public class ActionDefinition extends ActionContext {
 
     /* For diffing. */
     private void getChanges(final DSL dsl) {
-        /* if managed get last dsl from remote, if unmanaged query it from the database, using api */
+        /* if managed, get last dsl from the remote, if unmanaged, query it from the database, using api */
         if (arguments.isManaged()) {
             final GetLastManagedDSLResponse getLastManagedDSLResponse = api.getLastManagedDSL(getToken(), arguments.getProjectID().projectID);
             getChanges(getLastManagedDSLResponse.dsls, dsl.files);
@@ -128,16 +168,18 @@ public class ActionDefinition extends ActionContext {
     }
 
     /**
-     * Parse Diff procedure interacting with the user
+     * Parse Diff procedure interacting with the user.
+     * Show parse result, if positive, calculate and show the difference in dsl.
+     * Then if skip-diff is not checked ask user if displayed changes are good.
      *
      * @param dsl
      * @return Users choice on continuation with procedure
      */
-    private ContinueRetryQuit parseDiff(DSL dsl) {
+    private ContinueRetryQuit parseDiff(DSL dsl) throws IOException {
         if (parseDSL(dsl)) {
             if (!skip_diff) {
                 getChanges(dsl);
-                /* prompt user to continue, retry (reload DSL) or quit. */
+                /* Prompt user to continue, retry (reload DSL) or quit. */
                 return prompt.promptCRQ(are_diff_changes_good_raw_prompt);
             }
             return ContinueRetryQuit.Continue;
@@ -149,7 +191,7 @@ public class ActionDefinition extends ActionContext {
     }
 
     @Override
-    public boolean upgrade() {
+    public boolean upgrade() throws IOException {
         final Set<String> targetStringSet = mapTargets();
 
         final Set<String> options = mapOptions();
@@ -329,7 +371,7 @@ public class ActionDefinition extends ActionContext {
      * <p>
      * Deploy to mono service.
      */
-    public boolean deployUnmanagedServer() {
+    public boolean deployUnmanagedServer() throws IOException {
         final DSL dsl = getDSL();
 
         /* 1: Parse DSL, continue if parseable prompt retry if not.

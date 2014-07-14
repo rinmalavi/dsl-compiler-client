@@ -6,7 +6,6 @@ import com.dslplatform.compiler.client.api.config.Tokenizer;
 import com.dslplatform.compiler.client.cmdline.parser.Arguments;
 import com.dslplatform.compiler.client.cmdline.parser.ParamSwitches;
 import com.dslplatform.compiler.client.io.Output;
-import com.dslplatform.compiler.client.params.Action;
 import com.dslplatform.compiler.client.params.DBConnectionString;
 import com.dslplatform.compiler.client.params.DSL;
 import com.dslplatform.compiler.client.params.Target;
@@ -17,7 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public abstract class ActionContext implements CLCAction {
+public abstract class ActionContext {
     protected final Api api;
     protected final Logger logger;
     protected final Output output;
@@ -26,6 +25,7 @@ public abstract class ActionContext implements CLCAction {
 
     protected final boolean skip_diff;
     protected final boolean allow_unsafe;
+    protected final boolean managed;
 
     protected ActionContext(final Api api, final Logger logger, final Output output, final Arguments arguments, final CommandLinePrompt clp) {
         this.api = api;
@@ -35,48 +35,9 @@ public abstract class ActionContext implements CLCAction {
         this.prompt = clp;
         this.skip_diff = arguments.isSkipDiff();
         this.allow_unsafe = arguments.isAllowUnsafe();
+        this.managed = arguments.isManaged();
     }
 
-    public void process() {
-        for (Action action : arguments.getActions().getActionSet()) {
-            switch (action) {
-                case UPDATE:
-                    upgrade();
-                    break;
-                case GET_CHANGES:
-                    getChanges();
-                    break;
-                case LAST_DSL:
-                    lastDSL();
-                    break;
-                case CONFIG:
-                /* todo - managed action */
-                    break;
-                case PARSE:
-                    parseDSL();
-                    break;
-                case GENERATE_SOURCES:
-                    generateSources();
-                    break;
-                case UNMANAGED_CS_SERVER:
-                    deployUnmanagedServer();
-                    break;
-                case UNMANAGED_SOURCE:
-                    unmanagedSource();
-                    break;
-                case UPGRADE_UNMANAGED_DATABASE:
-                    upgradeUnmanagedDatabase();
-                    break;
-                case UNMANAGED_SQL_MIGRATION:
-                    upgradeUnmanagedDatabase();
-                    break;
-                case DEPLOY_UNMANAGED_SERVER:
-                    deployUnmanagedServer();
-                    break;
-            }
-        }
-    }
-    
     public enum ContinueRetryQuit {Continue, Retry, Quit;}
 
     protected String getToken() {

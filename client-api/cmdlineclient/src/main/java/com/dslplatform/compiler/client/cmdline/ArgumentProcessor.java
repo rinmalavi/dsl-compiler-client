@@ -2,50 +2,56 @@ package com.dslplatform.compiler.client.cmdline;
 
 import com.dslplatform.compiler.client.response.GenerateMigrationSQLResponse;
 
-public interface CLCAction {
+import java.io.IOException;
 
-    public void process();
+public interface ArgumentProcessor {
+
+    /**
+     * iterates though actions and performs them.
+     * @throws IOException
+     */
+    public void process() throws IOException;
 
     /**
      * Informs if current DSL is syntactically correct.
      */
-    public boolean parseDSL();
+    public boolean parseDSL() throws IOException;
 
     /**
      * Outputs last dsl to the standard output.
      */
-    public void lastDSL();
+    public void lastDSL() throws IOException;
 
     /**
      * Informs a user of the changes made to the DSL.
      */
-    public void getChanges();
+    public void getChanges() throws IOException;
 
     /**
      * Upgrades the managed project with a given dsl.
      *
      * @return true if successful
      */
-    public boolean upgrade();
+    public boolean upgrade() throws IOException;
 
     /**
      * Generates client source for connecting to the managed revenj instance
      */
-    public boolean generateSources();
+    public boolean generateSources() throws IOException;
 
     /**
      * Requests for Unmanaged source.
      *
      * @return is operation successful
      */
-    public boolean unmanagedSource();
+    public boolean unmanagedSource() throws IOException;
 
     /**
      * Compiles C# sources provided at {@value }
      *
      * @return is operation successful
      */
-    public boolean compileCSServer();
+    public boolean compileCSServer() throws IOException;
 
     /**
      * Requests a migration based on the last migration in the provided database at the moment, or null if database is new, and the dsl provided in the parameters.
@@ -53,13 +59,13 @@ public interface CLCAction {
      *
      * @return migration or null if failed.
      */
-    public GenerateMigrationSQLResponse sqlMigration();
+    public GenerateMigrationSQLResponse sqlMigration() throws IOException;
 
     /**
      * Applies a migration sql to the database
      * migrationSQL is read from the disk if existing, otherwise user is prompted to request it.
      */
-    public boolean upgradeUnmanagedDatabase();
+    public boolean upgradeUnmanagedDatabase() throws IOException;
 
     /**
      * Aggregation of all tasks will perform following:
@@ -72,5 +78,5 @@ public interface CLCAction {
      * <p>
      * Deploy to mono service.
      */
-    public boolean deployUnmanagedServer();
+    public boolean deployUnmanagedServer() throws IOException;
 }

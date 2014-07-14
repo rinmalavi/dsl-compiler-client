@@ -300,14 +300,14 @@ public class CachingArgumentsProxy implements Arguments {
     }
 
     /**
-     * Validate that {@code actionsToValidate} have all neccessary properties loaded.
+     * Validate that {@code actionsToValidate} have all necessary properties loaded.
      */// TODO: Clumsy for this to be here, move it maybe to another layer
     private void validateActionsAgainstProperties(final Actions actionsToValidate) {
-        /* To validate actions against properties, we need to check if all neccessary properties are loaded */
+        /* To validate actions against properties, we need to check if all necessary properties are loaded */
         logger.trace("Validating actions.");
         for (final Action action : actionsToValidate.getActionSet()) {
             try {
-                logger.trace("Checking if all neccessary parameters exist for the action [" + action.toString() + "] ...");
+                logger.trace("Checking if all necessary parameters exist for the action [" + action.toString() + "] ...");
                 switch (action) {
                     case UPDATE:
                         getProjectPropertiesPath();
@@ -344,11 +344,15 @@ public class CachingArgumentsProxy implements Arguments {
                          *  - DBAuth
                          */
                         //getProjectPropertiesPath(); // Optional, no check
+
                         getUsername();
                         getPassword();
-                        getProjectID();
                         getDSLPath();
-                        getDBAuth();
+                        if (isManaged())
+                            getProjectID();
+                        else
+                            getDBAuth();
+
                         break;
                     case LAST_DSL:
                         // TODO:

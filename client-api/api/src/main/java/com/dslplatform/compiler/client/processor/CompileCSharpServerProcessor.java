@@ -1,5 +1,6 @@
 package com.dslplatform.compiler.client.processor;
 
+import com.dslplatform.compiler.client.Shell;
 import com.dslplatform.compiler.client.response.CompileCSharpServerResponse;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.FileUtils;
@@ -26,73 +27,21 @@ public class CompileCSharpServerProcessor {
     public CompileCSharpServerResponse process() {
         final String runScript = makeRunScript(sourcePath, dependencies, target);
         writeRunScript(runScript, target);
-        Process process = null;
         logger.trace("About to run mcs script");
         logger.trace(runScript);
         try {
-            process = Runtime.getRuntime().exec(runScript);
-            final Process finalProcess = process;
-
-            /* Consume output stream */
-            new Thread() {
-                public void run() {
-                    final InputStream in = finalProcess.getInputStream();
-                    try {
-                        final InputStreamReader inputStreamReader = new InputStreamReader(in);
-                        final BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) logger.trace(line);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        close(in);
-                    }
-                }
-            }.start();
-
-            /* Consume error stream */
-            new Thread() {
-                public void run() {
-                    final InputStream in = finalProcess.getErrorStream();
-                    try {
-                        final InputStreamReader inputStreamReader = new InputStreamReader(in);
-                        final BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) logger.error(line);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        close(in);
-                    }
-                }
-            }.start();
-            process.waitFor();
-
-            return new CompileCSharpServerResponse(true, compilationMessage);
+            if (Shell.execute(runScript, logger))
+                return new CompileCSharpServerResponse(true, compilationMessage);
+            else
+                return new CompileCSharpServerResponse(false, "");
         } catch (IOException e) {
             e.printStackTrace();
             return new CompileCSharpServerResponse(false, e.getMessage());
         } catch (InterruptedException e) {
             return new CompileCSharpServerResponse(false, e.getMessage());
-        } finally {
-            if (process != null) {
-                try {
-                    process.getOutputStream().close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                process.destroy();
-            }
         }
     }
 
-    private static void close(final InputStream inputStream) {
-        try {
-            if (inputStream != null) inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private static String makeRunScript(File sourcePath,
                                         File revenj,

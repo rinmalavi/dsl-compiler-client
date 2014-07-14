@@ -88,13 +88,9 @@ public class ApiImpl implements Api {
     public ParseDSLResponse parseDSL(
             String token,
             Map<String, String> dsl
-    ) {
+    ) throws IOException {
         final HttpResponse httpResponse;
-        try {
             httpResponse = httpTransport.sendRequest(httpRequestBuilder.parseDSL(token, dsl));
-        } catch (IOException e) {
-            return new ParseDSLResponse(false, e.getMessage(), false, null);
-        }
 
         return new ParseDSLProcessor().process(httpResponse);
     }
@@ -251,7 +247,7 @@ public class ApiImpl implements Api {
     ) {
         final DoesUnmanagedDSLExitsResponse doesUnmanagedDSLExitsResponse = doesUnmanagedDSLExits(dataSource);
         final Map<String, String> lastdsl;
-        String version = "1.0.1.24037";
+        String version = "";
         if (!doesUnmanagedDSLExitsResponse.databaseExists) {
             lastdsl = new HashMap<String, String>();
         } else {
@@ -692,7 +688,7 @@ public class ApiImpl implements Api {
                     }
                 }
             }
-            return new CacheRevenjResponse(true, String.format("Received revenj {} from {}", version, revenjURL));
+            return new CacheRevenjResponse(true, String.format("Received revenj %s from %s", version, revenjURL));
         } catch (MalformedURLException e) {
             logger.error(e.getMessage());
             return new CacheRevenjResponse(false, e.getMessage());
@@ -711,7 +707,7 @@ public class ApiImpl implements Api {
         }
     }
 
-    public boolean mingleDatabaseConnectionString(final MonoApplicationPath monoApplicationPath, final DBConnectionString dbConnectionString, final CompilationTargetPath compilationTargetPath) {
+    public boolean mingleRevenjConfig(final MonoApplicationPath monoApplicationPath, final DBConnectionString dbConnectionString, final CompilationTargetPath compilationTargetPath) {
         final File revenjConfigPath = new File(monoApplicationPath.monoApplicationPath, "bin/Revenj.Http.exe.config");
         String connectionString = dbConnectionString.dbConnectionString;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -773,8 +769,9 @@ public class ApiImpl implements Api {
             final InputStream startShIS = getClass().getResourceAsStream("/start.sh");
             IO.copyToDir(revenjPath.revenjPath, monoBin);
             IO.copyToDir(compilationTargetPath.compilationTargetPath, monoBin);
-            mingleDatabaseConnectionString(monoApplicationPath, dbConnectionString, compilationTargetPath);
+            mingleRevenjConfig(monoApplicationPath, dbConnectionString, compilationTargetPath);
             FileUtils.copyInputStreamToFile(startShIS, startSh);
+            Shell.makeExecutable(startSh);
         } catch (IOException e) {
             logger.error("There was an error copying files to mono location {}", e.getMessage());
             e.printStackTrace();

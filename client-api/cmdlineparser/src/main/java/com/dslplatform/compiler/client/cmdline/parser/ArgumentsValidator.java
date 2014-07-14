@@ -170,10 +170,8 @@ public class ArgumentsValidator implements Arguments {
                         || password == null
                         || host == null
                         || port == null
-                        || databaseName == null)) {
-            throw
+                        || databaseName == null)) throw
                     new IllegalArgumentException("Illegal database authentication parameters. The authentication requires either a valid connection string, or all individual connection parameters set.");
-        }
 
         return new DBAuth(getDBUsername(), getDBPassword(), getDBHost(), getDBPort(), getDBDatabaseName(), getDBConnectionString());
     }
@@ -319,6 +317,7 @@ public class ArgumentsValidator implements Arguments {
     @Override
     public Actions getActions() {
         final String actions = properties.getProperty(ACTIONS_KEY.paramKey);
+        if (actions == null) throw new IllegalStateException("No action to perform!");
         logger.trace("Validating Action(s) [{}] ...", actions);
 
         final EnumSet<Action> actionSet = EnumSet.noneOf(Action.class);
